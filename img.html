@@ -1,151 +1,139 @@
 <html>
-<head></head>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Hello, world!</title>
+</head>
 <body>
 <style>
-#codeForm input,#codeForm textarea{width:100%}
+#codeForm{max-width:800px}#codeForm input[type="text"],#codeForm textarea{width:100%}
+#codeForm div{margin:.5rem 1rem;display:flex;gap:.5rem}
+#codeForm label, #codeForm button{overflow-wrap:normal;cursor:pointer}
+img,embed,object,video{max-width:100%}
 </style>
+
 <form id="codeForm">
-<fieldset>
-<legend>Генерация HTML-кода для изображения</legend>
+<fieldset><legend>Image source</legend>
 <div>
-	<label for="imageLink">Ссылка на изображение*</label>
-	<input type="text" id="imageLink" required>
+	<input type="text" id="imageLink" placeholder="Вставьте ссылку на изображение" required><button type="button" onclick="getLink()">Загрузить</button>
 </div>
 <div>
-	<label for="imageAlt">Альтернативный текст*</label>
-	<input type="text" id="imageAlt" required>
+	<input type="text" id="baseUrl" readonly='readonly' placeholder="Базовая ссылка на изображение">
+</div>
+</fieldset>
+<fieldset><legend>Image settings</legend>
+<div>
+	<input type="text" id="imageFile" placeholder="Введите имя файла без расширения">
 </div>
 <div>
-	<label for="imageTitle">Подпись под изображением</label>
-	<input type="text" id="imageTitle">
+	<input type="checkbox" id="imageLoading"><label for="imageLoading">Eager loading (not lazy)</label>
+	<input type="checkbox" id="imageSrcset"><label for="imageSrcset">Source set for fallback image (jpg)</label>
 </div>
 <div>
-	<label for="htmlCode">Готовый HTML-код</label>
-	<textarea id="htmlCode" cols="60" rows="8"></textarea>
+	<input type="text" id="imageAlt" placeholder="Альтернативный текст (обязательно)" required>
 </div>
 <div>
-	<button type="button" onclick="copyClipboard()">Копировать</button>
+	<input type="text" id="imageTitle" placeholder="Подпись под изображением (опционально)" value=''>
+</div>
+<div>
+	<input type="text" id="imageClass" placeholder="Класс изображения" value="">
+	<input type="text" id="imagesMedia" placeholder="Media Queries" value="(max-width:992px) 88vw,64vw">
+</div>
+</fieldset>
+<fieldset><legend>Image embed code</legend>
+<div>
+	<textarea id="htmlCode" rows="8" readonly="readonly"></textarea>
+</div>
+<div id="imageStatus" style="justify-content:center">&#8204;</div>
+<div style="justify-content:center">
+	<button id="copyButton" type="button" onclick="copyLink(htmlCode.value)" disabled="disabled">Скопировать</button>
 	<button type="reset">Очистить</button>
 </div>
-<div><span id="clipboardStatus"></span></div>
+</fieldset>
+<fieldset><legend>Image preview</legend>
+<div>
+	<div id="codeTest"></div>
+</div>
 </fieldset>
 </form>
-<div>
-	<label for="codeTest">Проверка</label>
-	<p id="codeTest"></p>
-</div>
 
-<script>
-function makeCode(){
-let imageCode='',imageVariants=["320","576","768","992","1200"],
-	imageSizes='sizes="(max-width:992px) 88vw,64vw"',
-	imageDomain='blogger.googleusercontent.com',
-	imageLink=document.getElementById('imageLink').value,
-	imageAlt=document.getElementById('imageAlt').value,
-	imageTitle=document.getElementById('imageTitle').value;
-
-	if(imageLink.indexOf(imageDomain)>=0){
-
-		if(imageTitle!='')imageCode+='<div class="description" title="'+imageTitle+'">';
-		imageCode+='<img class="" loading="lazy" ';
-		if(imageAlt!='')imageCode+='alt="'+imageAlt+'" ';
-		imageCode+='src="'+imageLink+'=s768" ';
-		imageCode+=imageSizes+' srcset="';
-		for(l=0;l<imageVariants.length;l++){
-			imageCode+=imageLink+'=s'+imageVariants[l]+' '+imageVariants[l];
-			if(l<imageVariants.length-1)imageCode+='w,'; else imageCode+='w">';
+<script>let st;
+function getLink(){
+	if(imageLink.value.includes('blogger.googleusercontent.com') || imageLink.value.includes('bp.blogspot.com') || imageLink.value.includes('lh3.googleusercontent.com')){
+		imageStatus.innerHTML = 'Загрузка изображения';
+		if(imageLink.value.includes('blogger.googleusercontent.com')){
+			if(imageLink.value.includes('='))imageLink.value=imageLink.value.slice(0,imageLink.value.indexOf('='));
+			imageLink.value+='=g';
 		}
-		if(imageTitle!='')imageCode+='</div>';
-
-	}console.log(imageCode);
+		if(imageLink.value.includes('bp.blogspot.com') || imageLink.value.includes('lh3.googleusercontent.com')){
+			let newLink='',linkParts=imageLink.value.split('/');
+			for(let j=0;j<7;j++)newLink+=linkParts[j]+'/';
+			imageLink.value=newLink+'g/';
+		}
+		let x=new XMLHttpRequest();
+		x.addEventListener("loadend",function(){if(x.status!=200)imageStatus.innerHTML="При загрузке файла произошла ошибка: "+x.status},false);
+		x.open('GET',imageLink.value,true);
+		x.onreadystatechange=function(){
+			if(x.readyState === XMLHttpRequest.DONE && x.status === 200){baseUrl.value=x.responseXML.getElementsByTagName('TileInfo')[0].getAttribute('base_url').replace('http','https');makeCode()}
+		}
+		x.send();
+	}else imageStatus.innerHTML = 'Некорректная ссылка на изображение';
+}
+function copyLink(text){
+	var l = function (e){
+		e.clipboardData.setData('text/plain', text);
+		imageStatus.innerHTML = 'HTML-код скопирован в буфер обмена';
+		e.preventDefault();
+	};
+	document.addEventListener('copy', l);
+	document.execCommand('copy');
+	document.removeEventListener('copy', l);
+}
+function makeCode(){if(baseUrl.value!=''){
+	let imageCode='',imageSizes=["320","576","768","992","1200"],
+	imageMedia='sizes="'+imagesMedia.value+'"',
+	imageFileName=imageFile.value.trim().replace(/\s+/g,'-').toLowerCase();
+	imageStatus.innerHTML = '&#8204;';
+	if(imageTitle.value!='')imageCode+='<figure>';
+	imageCode+='<picture>';
+	imageCode+='<source ';
+	imageCode+='srcset="';
+	for(l=0;l<imageSizes.length;l++){
+		imageCode+=baseUrl.value.slice(0,baseUrl.value.lastIndexOf('/')+1)+'s'+imageSizes[l]+'-e365-rw/';
+		if(imageFileName!='')imageCode+=imageFileName+'-'+imageSizes[l]+'.webp';
+		imageCode+=' '+imageSizes[l]+'w';
+		if(l<imageSizes.length-1)imageCode+=', ';else imageCode+='"';
+	}
+	imageCode+=' '+imageMedia+' type="image/webp">';
+	imageCode+='<img ';
+	if(!imageLoading.checked){imageCode+='loading="lazy" '}
+	if(imageSrcset.checked){
+		imageCode+='srcset="';
+		for(l=0;l<imageSizes.length;l++){
+			imageCode+=baseUrl.value.slice(0,baseUrl.value.lastIndexOf('/')+1)+'s'+imageSizes[l]+'-e365/';
+			if(imageFileName!='')imageCode+=imageFileName+'-'+imageSizes[l]+'.jpg';
+			imageCode+=' '+imageSizes[l]+'w';
+			if(l<imageSizes.length-1)imageCode+=', ';else imageCode+='"';
+		}
+		imageCode+=' '+imageMedia+' ';
+	}
+	imageCode+='src="'+baseUrl.value.slice(0,baseUrl.value.lastIndexOf('/')+1)+'s'+imageSizes[2]+'-e365/';
+	if(imageFileName!='')imageCode+=imageFileName+'-'+imageSizes[2]+'.jpg';
+	imageCode+='"';
+	if(imageAlt.value!='')imageCode+=' alt="'+imageAlt.value+'"';
+	if(imageClass.value!="")imageCode+=' class="'+imageClass.value+'"';
+	if(imageTitle.value!="")imageCode+=' title="'+imageTitle.value+'"';
+	imageCode+='>';
+	imageCode+='</picture>';
+	if(imageTitle.value!='')imageCode+='<figcaption>'+imageTitle.value+'</figcaption></figure>';
 	document.getElementById('htmlCode').value = imageCode;
 	document.getElementById('codeTest').innerHTML = imageCode;
-	document.getElementById('clipboardStatus').innerHTML = '...';
-}
-
-document.getElementById('codeForm').addEventListener('input',makeCode);
+	copyButton.removeAttribute("disabled");
+}else getLink();}
+codeForm.addEventListener('input',function(){clearTimeout(st);copyButton.setAttribute("disabled","disabled");st=setTimeout(makeCode,1000)});
 </script>
 
 <script>
-/*
-
-let ReadyStr;
-function copyClipboard(){
-var listener = function (e){
-	e.clipboardData.setData('text/plain', ReadyStr);
-	clipboardStatus.innerHTML = 'HTML-код скопирован в буфер обмена';
-	e.preventDefault();
-};
-document.addEventListener('copy', listener);
-document.execCommand('copy');
-document.removeEventListener('copy', listener);
-}
-function resizeImage(imageLink,newSize,imageFile){
-	let newLink='',linkParts=imageLink.split('/');
-	for(let j=0;j<linkParts.length;j++){
-		if(j==7)newLink+=newSize; else if(j==8)newLink+=imageFile; else newLink+=linkParts[j];
-		if(j<linkParts.length-1)newLink+='/';
-	}
-	return newLink;
-}
-function makeCode(){
-let newLinks=["lh3.googleusercontent.com","lh4.googleusercontent.com","lh5.googleusercontent.com","lh6.googleusercontent.com"],
-	oldLinks=["1.bp.blogspot.com","2.bp.blogspot.com","3.bp.blogspot.com","4.bp.blogspot.com"],
-	imageSizes=["320","576","768","992","1200"],
-	newLink,i=0,s1='',s2='',s3='',imageSrcset='',imageChangeable=false;
-	imgSizes='sizes="(max-width:992px) 88vw,64vw"',
-	imageLink=document.getElementById('imageLink').value,
-	imageAlt=document.getElementById('imageAlt').value,
-	imageTitle=document.getElementById('imageTitle').value,
-	imageFile=document.getElementById('imageFile').value;
-
-	for(n=0;n<oldLinks.length;n++)if(imageLink.indexOf(oldLinks[n])>=0)imageChangeable=true;
-
-if(imageChangeable){
-
-	document.getElementById('imageFile').removeAttribute('disabled');
-
-	if(imageFile==''){
-		imageFile=imageLink.split('/')[imageLink.split('/').length-1];
-		document.getElementById('imageFile').value = imageFile;
-	}
-
-	while(i<oldLinks.length){
-		if(imageLink.indexOf(oldLinks[i])<0)i++;
-		else{newLink=imageLink.replace(oldLinks[i],newLinks[Math.floor(Math.random() * newLinks.length)]);break}
-	}
-
-	imageSrcset+='srcset="';
-	for(l=0;l<imageSizes.length;l++){
-		imageSrcset+=resizeImage(newLink,'s'+imageSizes[l],imageFile)+' '+imageSizes[l]+'w';
-		if(l<imageSizes.length-1)imageSrcset+=',';
-	}
-	imageSrcset+='"';
-
-	if(imageTitle!='')s1='<div class="description" title="'+imageTitle+'">';
-	s2='<img alt="'+imageAlt+'" '+imageSrcset+' '+imgSizes+' src="'+resizeImage(newLink,'s768',imageFile)+'" loading="lazy"/>';
-	s3='</div>';
-
-	if(s1=='')ReadyStr=s2; else ReadyStr = s1+s2+s3;
-
-} else {
-
-	document.getElementById('imageFile').setAttribute('disabled', 'disabled');
-
-	if(imageTitle!='')s1='<div class="description" title="'+imageTitle+'">';
-	s2='<img alt="'+imageAlt+'" src="'+imageLink+'"/>';
-	s3='</div>';
-
-	if(s1=='')ReadyStr=s2; else ReadyStr = s1+s2+s3;
-}
-	document.getElementById('htmlCode').value = ReadyStr;
-	document.getElementById('codeTest').innerHTML = ReadyStr;
-	document.getElementById('clipboardStatus').innerHTML = '...';
-}
-document.getElementById('codeForm').addEventListener('input',makeCode);
-
-*/
 </script>
-
 </body>
 </html>

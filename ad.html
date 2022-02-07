@@ -19,6 +19,8 @@ function getFile(){
 	x.onreadystatechange=function(){
 		if(x.readyState === XMLHttpRequest.DONE && x.status === 200){
 			console.log(x.responseText);
+			const obj = JSON.parse(x.responseText);
+			console.log(obj);
 		}
 	}
 	x.send();

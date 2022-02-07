@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>AD</title>
+</head>
+<body>
+<style>
+</style>
+
+<button id="getButton" type="button" onclick="getFile()">Загрузить</button>
+
+<script>
+function getFile(){
+	let x=new XMLHttpRequest(),fn='list.txt';
+	x.addEventListener("loadend",function(){if(x.status!=200)console.log("При загрузке файла произошла ошибка: "+x.status)},false);
+	x.open('GET',fn,true);
+	x.onreadystatechange=function(){
+		if(x.readyState === XMLHttpRequest.DONE && x.status === 200){
+			console.log(x.responseText);
+		}
+	}
+	x.send();
+}
+</script>
+
+</body>
+</html>

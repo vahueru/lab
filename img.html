@@ -1,0 +1,151 @@
+<html>
+<head></head>
+<body>
+<style>
+#codeForm input,#codeForm textarea{width:100%}
+</style>
+<form id="codeForm">
+<fieldset>
+<legend>Генерация HTML-кода для изображения</legend>
+<div>
+	<label for="imageLink">Ссылка на изображение*</label>
+	<input type="text" id="imageLink" required>
+</div>
+<div>
+	<label for="imageAlt">Альтернативный текст*</label>
+	<input type="text" id="imageAlt" required>
+</div>
+<div>
+	<label for="imageTitle">Подпись под изображением</label>
+	<input type="text" id="imageTitle">
+</div>
+<div>
+	<label for="htmlCode">Готовый HTML-код</label>
+	<textarea id="htmlCode" cols="60" rows="8"></textarea>
+</div>
+<div>
+	<button type="button" onclick="copyClipboard()">Копировать</button>
+	<button type="reset">Очистить</button>
+</div>
+<div><span id="clipboardStatus"></span></div>
+</fieldset>
+</form>
+<div>
+	<label for="codeTest">Проверка</label>
+	<p id="codeTest"></p>
+</div>
+
+<script>
+function makeCode(){
+let imageCode='',imageVariants=["320","576","768","992","1200"],
+	imageSizes='sizes="(max-width:992px) 88vw,64vw"',
+	imageDomain='blogger.googleusercontent.com',
+	imageLink=document.getElementById('imageLink').value,
+	imageAlt=document.getElementById('imageAlt').value,
+	imageTitle=document.getElementById('imageTitle').value;
+
+	if(imageLink.indexOf(imageDomain)>=0){
+
+		if(imageTitle!='')imageCode+='<div class="description" title="'+imageTitle+'">';
+		imageCode+='<img class="" loading="lazy" ';
+		if(imageAlt!='')imageCode+='alt="'+imageAlt+'" ';
+		imageCode+='src="'+imageLink+'=s768" ';
+		imageCode+=imageSizes+' srcset="';
+		for(l=0;l<imageVariants.length;l++){
+			imageCode+=imageLink+'=s'+imageVariants[l]+' '+imageVariants[l];
+			if(l<imageVariants.length-1)imageCode+='w,'; else imageCode+='w">';
+		}
+		if(imageTitle!='')imageCode+='</div>';
+
+	}console.log(imageCode);
+	document.getElementById('htmlCode').value = imageCode;
+	document.getElementById('codeTest').innerHTML = imageCode;
+	document.getElementById('clipboardStatus').innerHTML = '...';
+}
+
+document.getElementById('codeForm').addEventListener('input',makeCode);
+</script>
+
+<script>
+/*
+
+let ReadyStr;
+function copyClipboard(){
+var listener = function (e){
+	e.clipboardData.setData('text/plain', ReadyStr);
+	clipboardStatus.innerHTML = 'HTML-код скопирован в буфер обмена';
+	e.preventDefault();
+};
+document.addEventListener('copy', listener);
+document.execCommand('copy');
+document.removeEventListener('copy', listener);
+}
+function resizeImage(imageLink,newSize,imageFile){
+	let newLink='',linkParts=imageLink.split('/');
+	for(let j=0;j<linkParts.length;j++){
+		if(j==7)newLink+=newSize; else if(j==8)newLink+=imageFile; else newLink+=linkParts[j];
+		if(j<linkParts.length-1)newLink+='/';
+	}
+	return newLink;
+}
+function makeCode(){
+let newLinks=["lh3.googleusercontent.com","lh4.googleusercontent.com","lh5.googleusercontent.com","lh6.googleusercontent.com"],
+	oldLinks=["1.bp.blogspot.com","2.bp.blogspot.com","3.bp.blogspot.com","4.bp.blogspot.com"],
+	imageSizes=["320","576","768","992","1200"],
+	newLink,i=0,s1='',s2='',s3='',imageSrcset='',imageChangeable=false;
+	imgSizes='sizes="(max-width:992px) 88vw,64vw"',
+	imageLink=document.getElementById('imageLink').value,
+	imageAlt=document.getElementById('imageAlt').value,
+	imageTitle=document.getElementById('imageTitle').value,
+	imageFile=document.getElementById('imageFile').value;
+
+	for(n=0;n<oldLinks.length;n++)if(imageLink.indexOf(oldLinks[n])>=0)imageChangeable=true;
+
+if(imageChangeable){
+
+	document.getElementById('imageFile').removeAttribute('disabled');
+
+	if(imageFile==''){
+		imageFile=imageLink.split('/')[imageLink.split('/').length-1];
+		document.getElementById('imageFile').value = imageFile;
+	}
+
+	while(i<oldLinks.length){
+		if(imageLink.indexOf(oldLinks[i])<0)i++;
+		else{newLink=imageLink.replace(oldLinks[i],newLinks[Math.floor(Math.random() * newLinks.length)]);break}
+	}
+
+	imageSrcset+='srcset="';
+	for(l=0;l<imageSizes.length;l++){
+		imageSrcset+=resizeImage(newLink,'s'+imageSizes[l],imageFile)+' '+imageSizes[l]+'w';
+		if(l<imageSizes.length-1)imageSrcset+=',';
+	}
+	imageSrcset+='"';
+
+	if(imageTitle!='')s1='<div class="description" title="'+imageTitle+'">';
+	s2='<img alt="'+imageAlt+'" '+imageSrcset+' '+imgSizes+' src="'+resizeImage(newLink,'s768',imageFile)+'" loading="lazy"/>';
+	s3='</div>';
+
+	if(s1=='')ReadyStr=s2; else ReadyStr = s1+s2+s3;
+
+} else {
+
+	document.getElementById('imageFile').setAttribute('disabled', 'disabled');
+
+	if(imageTitle!='')s1='<div class="description" title="'+imageTitle+'">';
+	s2='<img alt="'+imageAlt+'" src="'+imageLink+'"/>';
+	s3='</div>';
+
+	if(s1=='')ReadyStr=s2; else ReadyStr = s1+s2+s3;
+}
+	document.getElementById('htmlCode').value = ReadyStr;
+	document.getElementById('codeTest').innerHTML = ReadyStr;
+	document.getElementById('clipboardStatus').innerHTML = '...';
+}
+document.getElementById('codeForm').addEventListener('input',makeCode);
+
+*/
+</script>
+
+</body>
+</html>

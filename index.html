@@ -1,1 +1,49 @@
-H!
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="<$BlogLanguageDirection$>">
+<head><title><$BlogPageTitle$></title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<style type="text/css">
+	</style>
+</head>
+<body>
+<script>
+//<![CDATA[
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
+
+function showContent(e){
+	console.log(e);
+  //console.log(JSON.parse(e));
+  let a = JSON.stringify(e.feed.entry[0].link[7]);
+  //console.log(a);
+  //console.log(e.feed.entry[0].link[7]["rel"]);
+	for(let i=0;i<e.feed.entry.length;i++){
+/*		let u='',l=0;while(u==''&&l<e.feed.entry[i].link.length){
+			u=(e.feed.entry[i].link[l].rel=="alternate") ? e.feed.entry[i].link[l].href : '',l++;
+			console.log('l='+l+' u='+u); 
+			//l++;
+		} */
+/*		let u='',l=0;while(u==''&&l<e.feed.entry[i].link.length){
+			u=(e.feed.entry[i].link[l].rel=="alternate") ? e.feed.entry[i].link[l].href : '',l++;
+			console.log('l='+l+' u='+u); 
+			//l++;
+		} */
+        let u='';for(l=e.feed.entry[i].link.length-1;l>0&&!u;l--)u=(e.feed.entry[i].link[l].rel=="alternate") ? e.feed.entry[i].link[l].href : '';
+		console.log('l='+l+' u='+u); 
+    }
+}
+
+function loadScript(src){
+	var script = document.createElement('script');
+	script.type = 'text/javascript';
+	script.async = true;
+	script.src = src;
+	document.body.appendChild(script);
+}
+function loadScripts(){loadScript('/feeds/posts/default/?alt=json-in-script&callback=showContent&max-results=1000')}
+if(window.addEventListener)window.addEventListener('load', loadScripts, false);
+	else if(window.attachEvent)window.attachEvent('onload', loadScripts);
+	else window.onload = loadScripts;
+//]]>
+</script>
+</body>
+</html>

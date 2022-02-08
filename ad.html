@@ -21,6 +21,7 @@ function getFile(){
 			console.log(x.responseText);
 			const obj = JSON.parse(x.responseText);
 			console.log(obj);
+			console.log(obj.length);
 		}
 	}
 	x.send();

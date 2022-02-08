@@ -13,7 +13,7 @@
 
 <script>
 function getFile(){
-	let x=new XMLHttpRequest(),fn='./feeds/posts/default';
+	let x=new XMLHttpRequest(),fn='https://www.vahue.ru/feeds/posts/default';
 	x.addEventListener("loadend",function(){if(x.status!=200)console.log("При загрузке файла произошла ошибка: "+x.status)},false);
 	x.open('GET',fn,true);
 	x.onreadystatechange=function(){
